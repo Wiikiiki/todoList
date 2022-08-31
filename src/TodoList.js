@@ -1,61 +1,79 @@
-//容器组件
-
 import React from "react";
-// import TodoItem from "./TodoItem";
-// import { getAllByAltText } from "@testing-library/react";
-import store from './store/index';
-import { Provider } from 'react-redux';
-import { getInputChangeAction, getAddItem, getDeleteItem, getTodoList } from './store/actionCreators'
-// import { CHANGE_INPUT_VALUE, ADD_TODO_ITEM, DELETE_TODO_ITEM } from './store/actionTypes'
-import TodoListUI from "./TodoListUI";
+import { connect } from 'react-redux'
+import { CHANGE_INPUT_VALUE, ADD_ITEM, DELETE_ITEM } from './store/actionTypes'
+// import { changeInputValue, handleClick, handleDelete } from './store/actionCreators'
 
-class TodoList extends React.Component {
+const TodoList = (props) => {
+  //结构赋值
+  const { inputValue, changeInputValue, handleClick, list, handleDelete } = props
 
-  constructor(props) {
-    super(props);
-    this.state = store.getState();
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleStoreChange = this.handleStoreChange.bind(this);
-    this.handleBtnClick = this.handleBtnClick.bind(this);
-    this.handleItemDelete = this.handleItemDelete.bind(this)
-    store.subscribe(this.handleStoreChange);
-  }
-  
-  render() {
-    return (
-      <TodoListUI 
-        inputValue = {this.state.inputValue}
-        list = {this.state.list}
-        handleInputChange = {this.handleInputChange}
-        handleBtnClick = {this.handleBtnClick}
-        handleItemDelete = {this.handleItemDelete}
-      />
-    )
-  }
+  return (
+    <>
+      <div>
+        <input 
+          value = {inputValue} 
+          onChange={changeInputValue}
+        />
+        <button
+          onClick={handleClick}
+        >提交</button>
+      </div>
+      <ul>
+        {
+          list.map((item, index) => {
+            return (
+              <li 
+                key = {index}
+                onClick = {handleDelete}
+              >
+                {item}
+              </li>)
+          })
+        }
+      </ul>
+    </>
+  )
+}
 
-  componentDidMount() {
-    const action = getTodoList()
-    store.dispatch(action)
-  }
-  
-  handleInputChange(e) {
-    const action = getInputChangeAction(e.target.value)
-    store.dispatch(action)
-  }
 
-  handleStoreChange() {
-    this.setState(store.getState())
-  }
 
-  handleBtnClick() {
-    const action = getAddItem()
-    store.dispatch(action)
-  }
-
-  handleItemDelete(index) {
-    const action = getDeleteItem(index)
-    store.dispatch(action)
+const mapStateToProps = (state) => {
+  return {
+    inputValue: state.inputValue,
+    list: state.list
   }
 }
 
-export default TodoList
+const mapDispatchToProps = (dispatch) => {
+  return{
+    // changeInputValue: (e) => dispatch(),
+    // handleClick: () => dispatch(handleClick()),
+    // handleDelete: () => dispatch(handleDelete())
+
+    changeInputValue(e) {
+      const action = {
+        type: CHANGE_INPUT_VALUE,
+        value: e.target.value
+      }
+      dispatch(action)
+    },
+
+    handleClick() {
+      const action = {
+        type: ADD_ITEM
+      }
+      dispatch(action)
+    },
+
+    handleDelete(index) {
+      const action = {
+        type: DELETE_ITEM,
+        index: index
+      }
+      dispatch(action)
+    }
+  }
+}
+
+// TodoList本身是UI组件，connect整体导出的是容器组件
+export default connect(mapStateToProps, mapDispatchToProps) (TodoList)
